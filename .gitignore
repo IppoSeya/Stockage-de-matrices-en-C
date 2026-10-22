@@ -1,0 +1,11 @@
+  *.o
+*.exe
+test_ex1
+test_ex2
+test_ex3
+demo_matrices
+test_ex2_sortie.txt
+R.txt
+R2.txt
+resultat_add.txt
+.vscode/
