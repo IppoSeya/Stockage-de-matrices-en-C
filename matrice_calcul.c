@@ -40,12 +40,19 @@ MatErreur mat_additionner(const Matrice *a, const Matrice *b,
     /* (3.a) À COMPLÉTER : si a et b n'ont pas le même nombre de lignes
      *       OU pas le même nombre de colonnes,
      *       renvoyer MAT_ERR_DIMENSIONS.                              */
-
+    if ((a->nb_lignes != b->nb_lignes) || (a->nb_colonnes != b->nb_colonnes))
+        return MAT_ERR_DIMENSIONS;
 
     /* (3.b) À COMPLÉTER : allouer r avec les dimensions de a ;
      *         err = mat_allouer(&r, ..., ...);
      *         if (err != MAT_OK) return err;                          */
+
     Matrice r = MATRICE_VIDE;
+
+    err = mat_allouer(&r, a->nb_lignes, a->nb_colonnes);
+    if (err != MAT_OK)
+        return err;
+
 
 
     /* FOURNI : parcours de tous les coefficients de r. */
@@ -54,7 +61,8 @@ MatErreur mat_additionner(const Matrice *a, const Matrice *b,
             /* (3.c) À COMPLÉTER : calculer la somme des coefficients
              *       (i, j) de a et de b EN long long :
              *         long long s = (long long)a->coef[i][j] + ... ;  */
-            long long s = 0;   /* ligne provisoire : à remplacer en (3.c) */
+            long long  s = (long long)a->coef[i][j] + b->coef[i][j];
+   /* ligne provisoire : à remplacer en (3.c) */
 
             if (!tient_dans_int(s)) {                    /* FOURNI */
                 mat_detruire(&r);
@@ -66,8 +74,8 @@ MatErreur mat_additionner(const Matrice *a, const Matrice *b,
 
     /* (3.d) À COMPLÉTER : transférer le résultat :
      *         *res = r;  return MAT_OK;                               */
-    mat_detruire(&r);            /* ligne provisoire : à supprimer en (3.d) */
-    return MAT_ERR_LECTURE;      /* ligne provisoire : à remplacer en (3.d) */
+    *res = r;
+    return MAT_OK;
 }
 
 MatErreur mat_multiplier(const Matrice *a, const Matrice *b,
@@ -80,11 +88,17 @@ MatErreur mat_multiplier(const Matrice *a, const Matrice *b,
     /* (3.e) À COMPLÉTER : le produit a x b n'existe que si le nombre de
      *       COLONNES de a est égal au nombre de LIGNES de b.
      *       Sinon, renvoyer MAT_ERR_DIMENSIONS.                       */
-
+    if (a->nb_colonnes != b->nb_lignes)
+	return MAT_ERR_DIMENSIONS;
 
     /* (3.f) À COMPLÉTER : allouer r de dimensions
      *       (lignes de a) x (colonnes de b).                          */
+
     Matrice r = MATRICE_VIDE;
+
+    err = mat_allouer(&r, a->nb_lignes, b->nb_colonnes);
+    if (err != MAT_OK)
+	return err;
 
 
     for (int i = 0; i < r.nb_lignes; i++) {              /* FOURNI */
@@ -103,6 +117,14 @@ MatErreur mat_multiplier(const Matrice *a, const Matrice *b,
              *       }
              *       s += p;
              *   }                                                     */
+	    for (int k = 0; k < a->nb_colonnes; k++) {
+		long long p = (long long)a->coef[i][k] * b->coef[k][j];
+		if ((p > 0 && s > LLONG_MAX - p) || (p < 0 && s < LLONG_MIN - p)) {
+		    mat_detruire(&r);
+		    return MAT_ERR_DEPASSEMENT;
+                }
+		s += p;
+	    }
 
             if (!tient_dans_int(s)) {                    /* FOURNI */
                 mat_detruire(&r);
@@ -113,6 +135,7 @@ MatErreur mat_multiplier(const Matrice *a, const Matrice *b,
     }
 
     /* (3.h) À COMPLÉTER : *res = r;  return MAT_OK;                    */
-    mat_detruire(&r);            /* ligne provisoire : à supprimer en (3.h) */
-    return MAT_ERR_LECTURE;      /* ligne provisoire : à remplacer en (3.h) */
+    *res = r;
+    return MAT_OK;
 }
+
