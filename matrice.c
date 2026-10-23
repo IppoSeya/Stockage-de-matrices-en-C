@@ -18,6 +18,8 @@ const char *mat_message_erreur(MatErreur code)
 
     /* (1.a) À COMPLÉTER : les cas MAT_ERR_DIMENSIONS et
      *       MAT_ERR_DEPASSEMENT, sur le même modèle que ci-dessus. */
+    case MAT_ERR_DIMENSIONS:  return "dimensions incompatibles";
+    case MAT_ERR_DEPASSEMENT: return "dépassement de capacité";
 
     default:                  break;
     }
@@ -34,6 +36,7 @@ int mat_est_valide(const Matrice *m)
      *         - 1 <= m->nb_colonnes <= MAT_DIM_MAX.
      *       Une seule instruction suffit :
      *         return m != NULL && m->coef != NULL && ... ;            */
+    return m != NULL && m->coef != NULL && m->nb_lignes >= 1 && m->nb_lignes <= MAT_DIM_MAX && m->nb_colonnes >= 1 && m->nb_colonnes <= MAT_DIM_MAX;
 
     (void)m;      /* ligne provisoire : à supprimer en (1.b) */
     return 0;     /* ligne provisoire : à remplacer en (1.b) */
