@@ -39,7 +39,8 @@ MatErreur mat_allouer(Matrice *res, int nb_lignes, int nb_colonnes)
 
     /* (1.c) À COMPLÉTER : si nb_lignes ou nb_colonnes n'est pas compris
      *       entre 1 et MAT_DIM_MAX, renvoyer MAT_ERR_ARGUMENT.          */
-
+    if (nb_lignes < 1 || nb_lignes > MAT_DIM_MAX || nb_colonnes < 1 || nb_colonnes > MAT_DIM_MAX)
+    	return MAT_ERR_ARGUMENT;
 
     /* FOURNI : tableau des nb_lignes pointeurs de lignes (tous à NULL). */
     int **coef = mat_calloc((size_t)nb_lignes, sizeof *coef);
@@ -56,12 +57,26 @@ MatErreur mat_allouer(Matrice *res, int nb_lignes, int nb_colonnes)
      *           return MAT_ERR_ALLOCATION;
      *       }
      *   }                                                             */
+    for (int i = 0; i < nb_lignes; i++) {
+	coef[i] = mat_calloc((size_t)nb_colonnes, sizeof **coef);
+	if (coef[i] == NULL) {
+	    for (int k = i - 1; k >= 0; k--)
+        	free(coef[k]);
+        free(coef);
+        return MAT_ERR_ALLOCATION;
+    }
+}
 
     (void)nb_colonnes;   /* ligne provisoire : à supprimer en (1.d) */
 
     /* (1.e) À COMPLÉTER : maintenant que tout a réussi, remplir *res
      *       (trois affectations : coef, nb_lignes, nb_colonnes)
      *       et renvoyer MAT_OK.                                        */
+     res->coef = coef;
+     res->nb_lignes = nb_lignes;
+     res->nb_colonnes = nb_colonnes;
+     return MAT_OK;
+
 
     free(coef);                  /* ligne provisoire : à supprimer en (1.e) */
     return MAT_ERR_LECTURE;      /* ligne provisoire : à remplacer en (1.e) */
@@ -76,6 +91,11 @@ void mat_detruire(Matrice *m)
      *         - libérer chaque ligne m->coef[i], i de 0 à nb_lignes - 1 ;
      *         - PUIS libérer le tableau m->coef lui-même.              */
 
+     if (m->coef != NULL) {
+	for (int i = 0; i < m->nb_lignes; i++)
+            free(m->coef[i]);
+	free(m->coef);
+}
 
     *m = MATRICE_VIDE;   /* FOURNI : état sûr après destruction (R6) */
 }
