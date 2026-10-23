@@ -1,4 +1,4 @@
-  *.o
+*.o
 *.exe
 test_ex1
 test_ex2
