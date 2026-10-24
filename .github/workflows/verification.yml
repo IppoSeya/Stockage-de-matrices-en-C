@@ -1,0 +1,125 @@
+# Vérification automatique du TD « Stockage de matrices en C ».
+# À chaque push, GitHub recompile votre code comme le fera l'enseignant
+# (gcc -std=c11 -Wall -Wextra -Wpedantic, en-têtes d'origine) puis lance
+# les 3 tests fournis, valgrind et quelques scénarios de demo_matrices.
+# Résultat : onglet « Actions » du dépôt (coche verte ou croix rouge).
+# NE PAS MODIFIER CE FICHIER.
+name: Verification TD matrices
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verifier:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CFLAGS: -std=c11 -Wall -Wextra -Wpedantic -g
+      VALGRIND: valgrind --leak-check=full --errors-for-leak-kinds=definite,indirect,possible --error-exitcode=99 -q
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer gcc et valgrind
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq build-essential valgrind
+
+      - name: Structure du dépôt
+        run: |
+          ok=1
+          for f in matrice.h matrice.c matrice_alloc.h matrice_alloc.c matrice_io.h matrice_io.c \
+                   matrice_calcul.h matrice_calcul.c main.c test_ex1.c test_ex2.c test_ex3.c \
+                   README.md .gitignore donnees/A.txt donnees/B.txt donnees/C.txt \
+                   donnees/invalide.txt donnees/tronque.txt; do
+            [ -e "$f" ] || { echo "::error::Fichier manquant à la racine : $f"; ok=0; }
+          done
+          [ -e Makefile ] || echo "::warning::Pas de Makefile (il compte dans la note de conception)."
+          interdits=$(git ls-files | grep -E '\.(o|exe|out)$|(^|/)(\.vscode|\.idea|__MACOSX)/|^(test_ex[123]|demo_matrices)$' | tr '\n' ' ' || true)
+          [ -z "$interdits" ] || { echo "::error::Fichiers à retirer du dépôt : $interdits"; ok=0; }
+          [ $ok = 1 ]
+
+      # « if: always() » : chaque vérification s'exécute même si une
+      # précédente a échoué, pour que l'élève voie tous ses problèmes d'un coup.
+      - name: En-têtes identiques aux originaux
+        if: always()
+        run: |
+          cat > /tmp/empreintes <<'EOF'
+          3ae84a93bbd5a1ba1051caa34ef59967619e8c00279848fadeabffc9f0cacc1e  matrice.h
+          a288e1b175dd84d767b47d03c1118db77d7895570c27da4bcf60f9dfb3344b6b  matrice_alloc.h
+          2b13e118f6a7278bfc716598cb2dedad3255b692f8b5eb24ee4dc85285178991  matrice_calcul.h
+          bb43b1eb77ab7d0a886b144ad99766b8c455201a8b31db5f7440454a4e08eb95  matrice_io.h
+          EOF
+          ok=1
+          while read -r empreinte f; do
+            [ "$(tr -d '\r' < "$f" | sha256sum | cut -d' ' -f1)" = "$empreinte" ] \
+              || { echo "::error file=$f::$f a été modifié : l'enseignant compilera avec l'original."; ok=0; }
+          done < /tmp/empreintes
+          [ $ok = 1 ]
+
+      - name: Compilation (avertissements)
+        if: always()
+        run: |
+          ok=1
+          compiler() {  # compiler <programme> <sources...>
+            p=$1; shift
+            gcc $CFLAGS "$@" -o "$p" 2>> avert.txt || { echo "::error::$p ne compile pas."; ok=0; }
+          }
+          compiler test_ex1 -DMAT_TEST_ALLOC test_ex1.c matrice.c matrice_alloc.c
+          compiler test_ex2 -DMAT_TEST_ALLOC test_ex2.c matrice.c matrice_alloc.c matrice_io.c
+          compiler test_ex3 -DMAT_TEST_ALLOC test_ex3.c matrice.c matrice_alloc.c matrice_calcul.c
+          compiler demo_matrices main.c matrice.c matrice_alloc.c matrice_io.c matrice_calcul.c
+          cat avert.txt
+          n=$(sort -u avert.txt | grep -c ': warning:' || true)
+          echo "Avertissements : $n"
+          [ "$n" = 0 ] || echo "::warning::$n avertissement(s) de compilation."
+          [ $ok = 1 ]
+
+      - name: Tests fournis + valgrind
+        if: always()
+        run: |
+          ok=1
+          for t in test_ex1 test_ex2 test_ex3; do
+            echo "::group::$t"
+            if [ ! -x "$t" ]; then
+              echo "::error::$t n'a pas été compilé : voir l'étape Compilation."; ok=0
+            else
+              ./$t || { echo "::error::$t : des vérifications échouent (voir le bilan)."; ok=0; }
+              $VALGRIND ./$t > /dev/null || { echo "::error::$t : fuite ou erreur mémoire (valgrind)."; ok=0; }
+            fi
+            echo "::endgroup::"
+          done
+          [ $ok = 1 ]
+
+      - name: demo_matrices (scénarios du sujet)
+        if: always()
+        run: |
+          [ -x demo_matrices ] || { echo "::error::demo_matrices n'a pas été compilé : voir l'étape Compilation."; exit 1; }
+          ok=1
+          attendu() {  # attendu <code attendu> <op> <A> <B>
+            code=0; $VALGRIND ./demo_matrices "$2" "$3" "$4" R.txt > sortie.txt 2>&1 || code=$?
+            if [ $code = 99 ]; then echo "::error::fuite ou erreur mémoire : $2 $3 $4"; cat sortie.txt; ok=0
+            elif { [ "$1" = 0 ] && [ $code != 0 ]; } || { [ "$1" != 0 ] && [ $code = 0 ]; }; then
+              echo "::error::$2 $3 $4 : code $code, attendu $( [ "$1" = 0 ] && echo 0 || echo 'non nul')"; cat sortie.txt; ok=0
+            else echo "OK : $2 $3 $4 -> code $code"; fi
+          }
+          attendu 0 add donnees/A.txt donnees/B.txt
+          printf '4 3\n26 50 87\n19 38 17\n52 96 19\n10 23 7\n' > R_attendu.txt
+          diff -wB R.txt R_attendu.txt > /dev/null || { echo "::error::A + B : résultat faux"; ok=0; }
+          attendu 0 mul donnees/A.txt donnees/C.txt
+          printf '4 2\n193 -36\n37 22\n65 78\n-10 17\n' > R_attendu.txt
+          diff -wB R.txt R_attendu.txt > /dev/null || { echo "::error::A x C : résultat faux"; ok=0; }
+          attendu 1 add donnees/A.txt donnees/C.txt
+          attendu 1 add donnees/A.txt donnees/invalide.txt
+          attendu 1 mul donnees/tronque.txt donnees/C.txt
+          attendu 1 add donnees/A.txt donnees/n_existe_pas.txt
+          [ $ok = 1 ]
+
+      - name: make depuis un dossier propre
+        if: always()
+        continue-on-error: true
+        run: |
+          [ -e Makefile ] || { echo "Pas de Makefile."; exit 0; }
+          git clean -fdxq && make
+          for p in test_ex1 test_ex2 test_ex3 demo_matrices; do
+            [ -x "$p" ] || { echo "::warning::make ne produit pas $p"; }
+          done
