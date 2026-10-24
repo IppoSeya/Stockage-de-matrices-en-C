@@ -50,6 +50,6 @@ valgrind: $(TESTS) $(EXEC)
 	$(VALGRIND) ./$(EXEC) add donnees/A.txt donnees/B.txt R.txt
 
 clean:
-	rm -f *.o $(EXEC) $(TESTS) R.txt R2.txt resultat_add.txt test_ex2_sortie.txt[cite: 23, 36, 37]
+	rm -f *.o $(EXEC) $(TESTS) R.txt R2.txt resultat_add.txt test_ex2_sortie.txt
 
 .PHONY: all test valgrind clean 
