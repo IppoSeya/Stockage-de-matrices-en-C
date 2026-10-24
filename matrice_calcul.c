@@ -1,7 +1,7 @@
 /*
  * matrice_calcul.c -- Opérations arithmétiques sur les matrices.
  *
- * FICHIER À COMPLÉTER (exercice 3, étapes 3.a à 3.g).
+ * Exercice 3, étapes 3.a à 3.g.
  */
 #include <limits.h>
 #include <stddef.h>
@@ -37,13 +37,13 @@ MatErreur mat_additionner(const Matrice *a, const Matrice *b,
     if (err != MAT_OK)
         return err;
 
-    /* (3.a) À COMPLÉTER : si a et b n'ont pas le même nombre de lignes
+    /* étape 3.a (FAIT) : si a et b n'ont pas le même nombre de lignes
      *       OU pas le même nombre de colonnes,
      *       renvoyer MAT_ERR_DIMENSIONS.                              */
     if ((a->nb_lignes != b->nb_lignes) || (a->nb_colonnes != b->nb_colonnes))
         return MAT_ERR_DIMENSIONS;
 
-    /* (3.b) À COMPLÉTER : allouer r avec les dimensions de a ;
+    /* étape 3.b (FAIT) : allouer r avec les dimensions de a ;
      *         err = mat_allouer(&r, ..., ...);
      *         if (err != MAT_OK) return err;                          */
 
@@ -58,11 +58,10 @@ MatErreur mat_additionner(const Matrice *a, const Matrice *b,
     /* FOURNI : parcours de tous les coefficients de r. */
     for (int i = 0; i < r.nb_lignes; i++) {
         for (int j = 0; j < r.nb_colonnes; j++) {
-            /* (3.c) À COMPLÉTER : calculer la somme des coefficients
+            /* étape 3.c (FAIT) : calculer la somme des coefficients
              *       (i, j) de a et de b EN long long :
              *         long long s = (long long)a->coef[i][j] + ... ;  */
             long long  s = (long long)a->coef[i][j] + b->coef[i][j];
-   /* ligne provisoire : à remplacer en (3.c) */
 
             if (!tient_dans_int(s)) {                    /* FOURNI */
                 mat_detruire(&r);
@@ -72,7 +71,7 @@ MatErreur mat_additionner(const Matrice *a, const Matrice *b,
         }
     }
 
-    /* (3.d) À COMPLÉTER : transférer le résultat :
+    /* étape 3.d (FAIT) : transférer le résultat :
      *         *res = r;  return MAT_OK;                               */
     *res = r;
     return MAT_OK;
@@ -85,13 +84,13 @@ MatErreur mat_multiplier(const Matrice *a, const Matrice *b,
     if (err != MAT_OK)
         return err;
 
-    /* (3.e) À COMPLÉTER : le produit a x b n'existe que si le nombre de
+    /* étape 3.e (FAIT) : le produit a x b n'existe que si le nombre de
      *       COLONNES de a est égal au nombre de LIGNES de b.
      *       Sinon, renvoyer MAT_ERR_DIMENSIONS.                       */
     if (a->nb_colonnes != b->nb_lignes)
 	return MAT_ERR_DIMENSIONS;
 
-    /* (3.f) À COMPLÉTER : allouer r de dimensions
+    /* étape 3.f (FAIT) : allouer r de dimensions
      *       (lignes de a) x (colonnes de b).                          */
 
     Matrice r = MATRICE_VIDE;
@@ -105,7 +104,7 @@ MatErreur mat_multiplier(const Matrice *a, const Matrice *b,
         for (int j = 0; j < r.nb_colonnes; j++) {
             long long s = 0;
 
-            /* (3.g) À COMPLÉTER : boucle sur k, de 0 à a->nb_colonnes - 1,
+            /* étape 3.g (FAIT) : boucle sur k, de 0 à a->nb_colonnes - 1,
              *       qui ajoute à s le produit a(i,k) x b(k,j) :
              *
              *   for (int k = 0; k < a->nb_colonnes; k++) {
@@ -134,7 +133,7 @@ MatErreur mat_multiplier(const Matrice *a, const Matrice *b,
         }
     }
 
-    /* (3.h) À COMPLÉTER : *res = r;  return MAT_OK;                    */
+    /* étape 3.h (FAIT) : *res = r;  return MAT_OK;                    */
     *res = r;
     return MAT_OK;
 }
