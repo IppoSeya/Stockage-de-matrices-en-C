@@ -165,7 +165,8 @@ ligne renvoient au code actuel.
 Le [Makefile](Makefile) offre quatre cibles : `make` (ou `make all`) compile
 `demo_matrices` et les trois tests, `make test` lance les trois tests,
 `make valgrind` les passe sous valgrind, `make clean` supprime les `.o` et
-les exécutables ainsi que les txt généré.
+les exécutables ainsi que les fichiers (`R.txt`, `R2.txt`,
+   `resultat_add.txt`, `test_ex2_sortie.txt`).
 
 La compilation est séparée : chaque `.c` donne un `.o` (`gcc -c`), puis
 l'édition de liens assemble les `.o`. Un `.o` dépend de son `.c` et de tous
@@ -765,8 +766,7 @@ produise, et travailler à deux avec Git (commits réguliers, `pull` avant
 `push`).
 
 **Répartition du travail.** Hugo Boisbourdin : exercices 2 et 4, rédaction du
-compte rendu. Yousef Ben Ammar : exercices 1 et 3, Makefile. Temps passé : 3 demis
-journée chacun.
+compte rendu. Yousef Ben Ammar : exercices 1 et 3, Makefile. Temps passé : 3 demi-journée chacun.
 
 
 
