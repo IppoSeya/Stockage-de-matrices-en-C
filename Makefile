@@ -1,64 +1,71 @@
 CC       = gcc
 CFLAGS   = -std=c11 -Wall -Wextra -Wpedantic -g
-VALGRIND = valgrind --leak-check=full --show-leak-kinds=all
+TFLAGS   = -DMAT_TEST_ALLOC
+VALGRIND = valgrind --leak-check=full
 
-EXEC = demo_matrices
-TESTS = test_ex1 test_ex2 test_ex3
+HDRS = matrice.h matrice_alloc.h matrice_io.h matrice_calcul.h
 
-MODULES = matrice.c matrice_alloc.c matrice_io.c matrice_calcul.c
-OBJS    = $(MODULES:.c=.o)
-MAIN_OBJ = main.o
+all: demo_matrices test_ex1 test_ex2 test_ex3
 
-all: $(TESTS) $(EXEC)
+demo_matrices: main.o matrice.o matrice_alloc.o matrice_io.o matrice_calcul.o
+	$(CC) $(CFLAGS) main.o matrice.o matrice_alloc.o matrice_io.o matrice_calcul.o -o demo_matrices
 
-$(EXEC): $(MAIN_OBJ) $(OBJS)
-	$(CC) $(CFLAGS) $^ -o $@
+test_ex1: test_ex1.test.o matrice.test.o matrice_alloc.test.o
+	$(CC) $(CFLAGS) test_ex1.test.o matrice.test.o matrice_alloc.test.o -o test_ex1
 
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+test_ex2: test_ex2.test.o matrice.test.o matrice_alloc.test.o matrice_io.test.o
+	$(CC) $(CFLAGS) test_ex2.test.o matrice.test.o matrice_alloc.test.o matrice_io.test.o -o test_ex2
 
-test_ex1: test_ex1.c matrice.c matrice_alloc.c
-	$(CC) $(CFLAGS) -DMAT_TEST_ALLOC $^ -o $@
+test_ex3: test_ex3.test.o matrice.test.o matrice_alloc.test.o matrice_calcul.test.o
+	$(CC) $(CFLAGS) test_ex3.test.o matrice.test.o matrice_alloc.test.o matrice_calcul.test.o -o test_ex3
 
-test_ex2: test_ex2.c matrice.c matrice_alloc.c matrice_io.c
-	$(CC) $(CFLAGS) -DMAT_TEST_ALLOC $^ -o $@
+main.o: main.c $(HDRS)
+	$(CC) $(CFLAGS) -c main.c
 
-test_ex3: test_ex3.c matrice.c matrice_alloc.c matrice_calcul.c
-	$(CC) $(CFLAGS) -DMAT_TEST_ALLOC $^ -o $@
+matrice.o: matrice.c $(HDRS)
+	$(CC) $(CFLAGS) -c matrice.c
 
-build_tests: $(TESTS)
+matrice_alloc.o: matrice_alloc.c $(HDRS)
+	$(CC) $(CFLAGS) -c matrice_alloc.c
 
-test: $(TESTS)
-	@echo "=== Execution de test_ex1 ==="
+matrice_io.o: matrice_io.c $(HDRS)
+	$(CC) $(CFLAGS) -c matrice_io.c
+
+matrice_calcul.o: matrice_calcul.c $(HDRS)
+	$(CC) $(CFLAGS) -c matrice_calcul.c
+
+test_ex1.test.o: test_ex1.c $(HDRS)
+	$(CC) $(CFLAGS) $(TFLAGS) -c test_ex1.c -o test_ex1.test.o
+
+test_ex2.test.o: test_ex2.c $(HDRS)
+	$(CC) $(CFLAGS) $(TFLAGS) -c test_ex2.c -o test_ex2.test.o
+
+test_ex3.test.o: test_ex3.c $(HDRS)
+	$(CC) $(CFLAGS) $(TFLAGS) -c test_ex3.c -o test_ex3.test.o
+
+matrice.test.o: matrice.c $(HDRS)
+	$(CC) $(CFLAGS) $(TFLAGS) -c matrice.c -o matrice.test.o
+
+matrice_alloc.test.o: matrice_alloc.c $(HDRS)
+	$(CC) $(CFLAGS) $(TFLAGS) -c matrice_alloc.c -o matrice_alloc.test.o
+
+matrice_io.test.o: matrice_io.c $(HDRS)
+	$(CC) $(CFLAGS) $(TFLAGS) -c matrice_io.c -o matrice_io.test.o
+
+matrice_calcul.test.o: matrice_calcul.c $(HDRS)
+	$(CC) $(CFLAGS) $(TFLAGS) -c matrice_calcul.c -o matrice_calcul.test.o
+
+test: test_ex1 test_ex2 test_ex3
 	./test_ex1
-	@echo "\n=== Execution de test_ex2 ==="
 	./test_ex2
-	@echo "\n=== Execution de test_ex3 ==="
 	./test_ex3
 
-demo: $(EXEC)
-	./$(EXEC) add donnees/A.txt donnees/B.txt R.txt
-
-valgrind_ex1: test_ex1
+valgrind: demo_matrices test_ex1 test_ex2 test_ex3
 	$(VALGRIND) ./test_ex1
-
-valgrind_ex2: test_ex2
 	$(VALGRIND) ./test_ex2
-
-valgrind_ex3: test_ex3
 	$(VALGRIND) ./test_ex3
 
-valgrind_demo: $(EXEC)
-	-$(VALGRIND) ./$(EXEC) add donnees/A.txt donnees/B.txt R.txt
-
-valgrind_all: valgrind_ex1 valgrind_ex2 valgrind_ex3 valgrind_demo
-
 clean:
-	rm -f *.o
+	rm -f *.o demo_matrices test_ex1 test_ex2 test_ex3 R.txt R2.txt resultat_add.txt test_ex2_sortie.txt
 
-fclean: clean
-	rm -f $(EXEC) $(TESTS) R.txt R2.txt resultat_add.txt test_ex2_sortie.txt
-
-re: fclean all
-
-.PHONY: all build_tests test demo valgrind_ex1 valgrind_ex2 valgrind_ex3 valgrind_demo valgrind_all clean fclean re
+.PHONY: all test valgrind clean
