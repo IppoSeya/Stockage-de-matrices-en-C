@@ -1,7 +1,7 @@
 /*
  * matrice_io.c -- Lecture, écriture et affichage des matrices.
  *
- * FICHIER À COMPLÉTER (exercice 2, étapes 2.a à 2.f).
+ * FICHIER COMPLÉTER (exercice 2, étapes 2.a à 2.f).
  */
 #include <errno.h>
 #include <limits.h>
