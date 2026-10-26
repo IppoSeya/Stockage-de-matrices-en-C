@@ -60,7 +60,7 @@ test: test_ex1 test_ex2 test_ex3
 	./test_ex2
 	./test_ex3
 
-valgrind: demo_matrices test_ex1 test_ex2 test_ex3
+valgrind: test_ex1 test_ex2 test_ex3
 	$(VALGRIND) ./test_ex1
 	$(VALGRIND) ./test_ex2
 	$(VALGRIND) ./test_ex3

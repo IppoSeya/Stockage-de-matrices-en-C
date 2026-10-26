@@ -737,7 +737,7 @@ compris sur les chemins d'erreur.
   afin de mettre les mots clé du code dans des `zone` comme celle-ci et afin de trouver comment
   afficher : shéma, lien au code et capture d'écran directement dans le readme.
   L'ia a aussi été utilisé afin d'avoir certaine explication sur Github ainsi que pour trouver
-  la solution qu'a été WSL.
+  la solution qu'a été WSL. Enfin, l'IA nous a servi à comprendre comment écrire un `Makefile`.
 
 
 **Difficultés rencontrées.**
